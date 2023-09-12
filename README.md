@@ -1,5 +1,5 @@
-# Sound2Sign
-ECE 47700 Team 10 - Sound2Sign
+# Sign2Sound
+ECE 47700 Team 10 - Sign2Sound
 
 ## Computer Vision Algorithm
 ### PCA Tutorial Instructions
