@@ -1,0 +1,15 @@
+../Core/Src/main.c:20:6:setup_bb	8	static
+../Core/Src/main.c:32:6:small_delay	16	static
+../Core/Src/main.c:36:6:bb_write_bit	16	static
+../Core/Src/main.c:58:6:bb_write_byte	24	static
+../Core/Src/main.c:74:6:bb_cmd	16	static
+../Core/Src/main.c:94:6:bb_data	16	static
+../Core/Src/main.c:114:6:bb_init_oled	8	static
+../Core/Src/main.c:132:6:bb_display1	24	static
+../Core/Src/main.c:143:6:show_counter	64	static
+../Core/Src/main.c:153:6:bb_display2	16	static
+../Core/Src/main.c:154:6:setup_spi1	8	static
+../Core/Src/main.c:155:6:setup_spi2	8	static
+../Core/Src/main.c:156:6:spi_display1	16	static
+../Core/Src/main.c:157:6:spi_display2	16	static
+../Core/Src/main.c:167:5:main	96	static

@@ -1,5 +1,11 @@
 # Sign2Sound
-ECE 47700 Team 10 - Sign2Sound
+ECE 47700 Team 10
+
+## Team Members
+- Team Leader: Jenna Gillette
+- Software Engineer: Caroline Gilbert
+- Systems Engineer: Becca Horwatt
+- Hardware Engineer: Kaushik Karthikeyan
 
 ## Computer Vision Algorithm
 ### PCA Jupyter Notebook Instructions
@@ -27,4 +33,3 @@ Navigate to the pca-test folder and run the following commands to activate a vir
     ```
     conda remove -n myenv --all
     ```
-
