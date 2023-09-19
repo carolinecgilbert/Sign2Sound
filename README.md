@@ -27,3 +27,4 @@ Navigate to the pca-test folder and run the following commands to activate a vir
     ```
     conda remove -n myenv --all
     ```
+
