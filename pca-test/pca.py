@@ -1,12 +1,5 @@
-
-from IPython.display import Image, display
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as grid
 
 
 def PCA(input_image, n_bands=7, debug_mode=True):

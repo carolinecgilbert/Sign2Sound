@@ -8,21 +8,21 @@ Sign2Sound is a semi-portable ASL translator for the 24 stationary letters of th
 - Hardware Engineer: Kaushik Karthikeyan
 
 ## Computer Vision Algorithm
-### PCA Jupyter Notebook Instructions
-Use a virtual environment to install required dependencies for the jupyter notebook.
+### Virtual Environment (Conda)
+Use a virtual environment to install the required dependencies for the computer vision algorithm.
 
-See [Virtual Environment Dependencies](pca-test/environment.yml)
+See [Virtual Environment Dependencies](pca-test/cv-env.yml)
 
 Navigate to the pca-test folder and run the following commands to activate a virtual environment on Anaconda to install and run the notebook:
-- Create a new virtual environment `myenv` from the [environment.yml](pca-test/environment.yml) dependencies:
+- Create a new virtual environment `cv-env` from the [cv-env.yml](pca-test/cv-env.yml) dependencies:
 
     ```
-    conda create --name myenv --file environment.yml
+    conda env create -f cv-env.yml
     ```
 
 - Activate the environment:
     ```
-    conda activate myenv
+    conda activate cv-env
     ```
 
 - After finishing work in environment, deactivate it
@@ -31,5 +31,18 @@ Navigate to the pca-test folder and run the following commands to activate a vir
     ```
 - Delete environment if needed
     ```
-    conda remove -n myenv --all
+    conda remove -n cv-env --all
     ```
+
+### Image Preprocessing
+Principal component analysis (PCA) is a dimensionality reduction method utilized in image preprocessing to flatten image data. After capturing the user's ASL image on the Raspberry Pi camera, the Raspberry Pi performs PCA on the captured image to prepare the data for the KNN algorithm. To run the PCA script, execute the following command:
+
+Run the [pca.py](pca-test/pca.py) script to performa PCA on the [color-glove1.jpb](pca-test/color-glove1.jpg) image:
+
+```
+python pca-test/pca.py
+```
+
+The output should match the image below.
+
+![pca.py output](images/pca-output.png)
