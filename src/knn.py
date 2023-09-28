@@ -3,11 +3,11 @@ from pca import *
 
 # Perform PCA on sample images
 glovePC = PCA('color-glove1.jpg', 1, False)
-dogPC = PCA('dog.webp', 1, False)
+dogPC = PCA('dog1.webp', 1, False)
 catPC = PCA('cat.webp', 1, False)
 
 # Sample data points (features) and their corresponding labels
-X = np.array([[1, 2], [2, 3], [3, 4], [5, 6], [6, 7]])
+X = np.array([glovePC, [2, 3], [3, 4], [5, 6], [6, 7]])
 y = np.array([0, 0, 1, 1, 1])
 
 # New data point to classify

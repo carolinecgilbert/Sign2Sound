@@ -3,54 +3,44 @@ import numpy as np
 
 
 def PCA(input_image, n_bands=3, debug_mode=True):
-    # Read RGB image into an array
+    # Read RGB image into an array with cv2 lib
     img = cv2.imread(input_image)
     img_shape = img.shape[:2]
 
-    if (debug_mode):
-        print('image size = ',img_shape)
-
-    # 3 dimensional dummy array with zeros
-    MB_img = np.zeros((img_shape[0],img_shape[1],n_bands))
-    # stacking up images into the array
+    # stack images into an array
+    stacked_imgs = np.zeros((img_shape[0],img_shape[1],n_bands))
     for i in range(n_bands):
-        MB_img[:,:,i] = cv2.imread('color-glove'+str(i+1)+'.jpg', 
+        stacked_imgs[:,:,i] = cv2.imread('color-glove'+str(i+1)+'.jpg', 
                                    cv2.IMREAD_GRAYSCALE)  
 
-    MB_matrix = np.zeros((MB_img[:,:,0].size,n_bands))
+    # Flatten stacked images into standardized 1D array
+    img_matrix = np.zeros((stacked_imgs[:,:,0].size,n_bands))
     for i in range(n_bands):
-        MB_array = MB_img[:,:,i].flatten()  # covert 2d to 1d array 
-        MB_arrayStd = (MB_array - MB_array.mean())/MB_array.std()  
-        MB_matrix[:,i] = MB_arrayStd
-    MB_matrix.shape
+        img_arr = stacked_imgs[:,:,i].flatten() 
+        img_arr_std = (img_arr - img_arr.mean())/img_arr.std()  
+        img_matrix[:,i] = img_arr_std
 
-    # Covariance
+    # Calculate covariance and eigen values/vectors
     np.set_printoptions(precision=3)
-    cov = np.cov(MB_matrix.transpose())
+    cov = np.cov(img_matrix.transpose())
+    eigen_val, eigen_vec = np.linalg.eig(cov)
 
-    # Eigen Values
-    EigVal,EigVec = np.linalg.eig(cov)
+    # Find highest order of egien value and corresponding eigen vector
+    order = eigen_val.argsort()[::-1]
+    eigen_val = eigen_val[order]
+    eigen_vec = eigen_vec[:,order]
+
+    # Projecting data on Eigen vector directions resulting to Principal Components 
+    PC = np.matmul(img_matrix, eigen_vec)   #cross product
     if (debug_mode):
-        print("Eigenvalues:\n\n", EigVal,"\n")
-
-    # Ordering Eigen values and vectors
-    order = EigVal.argsort()[::-1]
-    EigVal = EigVal[order]
-    EigVec = EigVec[:,order]
-
-    #Projecting data on Eigen vector directions resulting to Principal Components 
-    PC = np.matmul(MB_matrix,EigVec)   #cross product
-    if (debug_mode):
-        print("PC.size = ", PC.size)
-        print("Principal Components:\n\n", PC,"\n")
+        print("PC.size = ", PC.size, "\n\nPrincipal Components:\n", PC,"\n")
     return PC
 
 def main():
-    img = 'color-glove1.jpg'
-    n_bands = 3
+    img = 'src/color-glove1.jpg'
+    n_bands = 1
     debug_mode = True
     PC = PCA(img, n_bands, debug_mode)
-    print('main() is done')
     
 if __name__ == "__main__":
     main()
