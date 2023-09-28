@@ -3,12 +3,15 @@
 // ECE 362 lab experiment 8 -- SPI and DMA
 //===========================================================================
 
+#include "main.h"
 #include "stm32f0xx.h"
 #include "lcd.h"
 #include <stdio.h> // for sprintf()
+#include <math.h>
 
 // Be sure to change this to your login...
 const char login[] = "xyz";
+SPI_HandleTypeDef hspi1;
 
 // Prototypes for miscellaneous things in lcd.c
 //void nano_wait(unsigned int){};
@@ -150,37 +153,234 @@ void show_counter(short buffer[])
     }
 }
 
+void spi_cmd(unsigned int data){
+	while(!(SPI1->SR & SPI_SR_TXE)) {}
+	SPI1->DR = data;
+}
+
+void spi_data(unsigned int data){
+	spi_cmd(data | 0x200);
+}
+
+
+void spi_dac1(const char * b){ }
+
+
 void bb_display2(const char * a){ }
-void setup_spi1(){ }
 void setup_spi2(){ }
-void spi_display1(const char * b){ }
 void spi_display2(const char * c){ }
+
+
+void setup_spi1(void)
+{
+	hspi1.Instance = SPI1;
+	hspi1.Init.Mode = SPI_MODE_MASTER;
+	hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+	hspi1.Init.NSS = SPI_NSS_SOFT;
+	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	hspi1.Init.CRCPolynomial = 7;
+	hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+	hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+
+	if (HAL_SPI_Init(&hspi1) != HAL_OK){
+		Error_Handler();
+	}
+}
+
+void setup_CS(void)
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	/* GPIO Ports Clock Enable */
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+
+	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+
+	/*Configure GPIO pin : PA4 */
+	GPIO_InitStruct.Pin = GPIO_PIN_4;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
+
+//============================================================================
+// write_dac()    (Autotest #5)
+// Write a sample to the right-aligned 12-bit DHR, and trigger conversion.
+// Parameters: sample: value to write to the DHR
+//============================================================================
+
+void write_dac(uint16_t value) {
+
+	uint8_t txData[2];
+
+	txData[0] = (value >> 8) & 0xFF;
+	txData[1] = value & 0xFF;
+
+    // Set SPI1 NSS (Chip Select) pin to low to select the DAC
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+    // Send the 16-bit integer to the DAC over SPI1
+    HAL_SPI_Transmit(&hspi1, txData, 2, HAL_MAX_DELAY);
+
+    // Set SPI1 NSS (Chip Select) pin back to high to complete the transaction
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+}
+
+HAL_StatusTypeDef spi_write(uint16_t *pData) {
+	HAL_StatusTypeDef ret;
+
+	uint8_t byte1 = *pData >> 8;
+	uint8_t byte2 = *pData & 0xFF;
+	uint8_t sendData[2] = {byte1, byte2};
+
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, 0);
+	ret = HAL_SPI_Transmit(&hspi1, sendData, 2, HAL_MAX_DELAY);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, 1);
+
+	if(ret != HAL_OK){
+		return ret;
+	}
+
+	return HAL_OK;
+}
+
+
+//============================================================================
+// Parameters for the wavetable size and expected DAC rate.
+//============================================================================
+#define N 1000
+#define RATE 20000
+short int wavetable[N];
+
+//============================================================================
+// init_wavetable()    (Autotest #6)
+// Write the pattern for one complete cycle of a sine wave into the
+// wavetable[] array.
+// Parameters: none
+//============================================================================
+void init_wavetable(void)
+{
+	for(int i=0; i < N; i++)
+		wavetable[i] = 32767 * sin(2 * M_PI * i / N);
+
+}
+
+//============================================================================
+// Global variables used for four-channel synthesis.
+//============================================================================
+int volume = 2048;
+int stepa = 0;
+int offseta = 0;
+
+//============================================================================
+// set_freq_n()    (Autotest #7)
+// Set the four step and four offset variables based on the frequency.
+// Parameters: f: The floating-point frequency desired.
+//============================================================================
+void set_freq_a(float f)
+{
+    if (f == 0.0f) {
+        stepa = 0;
+        offseta = 0;
+    }
+    else {
+        stepa = (int32_t)(f * N * (1 << 16) / RATE);
+    }
+}
+
+void interrupt(void){
+	offseta += stepa;
+
+	if (offseta >= (1 << 16)) {
+		offseta -= (1 << 16);
+	}
+
+	int32_t sample = wavetable[offseta >> 16];
+
+	// Reduce and shift the combined sample to the range of the DAC
+	sample >>= 5;      // Right-shift by 5 (dividing by 32)
+	sample += 2048;    // Add 2048
+
+	// Clip the adjusted sample to the DAC's range
+	if (sample > 4095) {
+		sample = 4095;
+	}
+	if (sample < 0) {
+		sample = 0;
+	}
+
+	spi_write(sample);
+
+}
+
+
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
 
 // Write your subroutines above
 
 void internal_clock();
-void demo();
-void autotest();
-
-extern const Picture *image;
 
 int main(void)
 {
-    //internal_clock();
-    //demo();
-    //autotest();
+	HAL_Init();
+	SystemClock_Config();
 
     setup_bb();
     bb_init_oled();
     bb_display1("ASL is cool");
-    //bb_display2(login);
+    // bb_display2(login);
 
-    //setup_spi2();
-    //spi_init_oled();
-    //spi_display1("Hello again,");
-    //spi_display2(login);
 
-    short buffer[34] = {
+    /*short buffer[34] = {
             0x02, // This word sets the cursor to beginning of line 1.
             // Line 1 consists of spaces (0x20)
             0x220, 0x220, 0x220, 0x220, 0x220, 0x220, 0x220, 0x220,
@@ -189,23 +389,66 @@ int main(void)
             // Line 2 consists of spaces (0x20)
             0x220, 0x220, 0x220, 0x220, 0x220, 0x220, 0x220, 0x220,
             0x220, 0x220, 0x220, 0x220, 0x220, 0x220, 0x220, 0x220,
-    };
+    };*/
 
     //spi_setup_dma(buffer);
     //enable_dma();
-    show_counter(buffer);
+    //show_counter(buffer);
 
-    //setup_spi1();
-    LCD_Init(0,0,0);
-    LCD_Clear(BLACK);
-    LCD_DrawLine(10,20,100,200, WHITE);
-    LCD_DrawRectangle(10,20,100,200, GREEN);
-    LCD_DrawFillRectangle(120,20,220,200, RED);
-    LCD_Circle(50, 260, 50, 1, BLUE);
-    LCD_DrawFillTriangle(130,130, 130,200, 190,160, YELLOW);
-    LCD_DrawChar(150,155, BLACK, WHITE, 'X', 16, 1);
-    LCD_DrawString(140,60,  WHITE, BLACK, "ECE 362", 16, 0);
-    LCD_DrawString(140,80,  WHITE, BLACK, "has the", 16, 1);
-    LCD_DrawString(130,100, BLACK, GREEN, "best toys", 16, 0);
-    LCD_DrawPicture(110,220,(const Picture *)&image);
+
+    uint16_t dataOut = 0x0000;
+    int iter = 0;
+
+    setup_CS();
+    setup_spi1();
+
+    while(1){
+
+    	if (iter==1) {
+        	for(int i = 1; i < 16; i++){
+        		spi_write(&dataOut);
+        		HAL_Delay(100);
+        		dataOut += 0x1000;
+        	}
+			iter = 0;
+		}
+		else {
+	    	for(int i = 16; i > 0; i--){
+	    		spi_write(&dataOut);
+	    		HAL_Delay(100);
+	    		dataOut -= 0x1000;
+	    	}
+			iter++;
+		}
+    }
+
+
+	/*init_wavetable();
+	//spi_init_dac();
+	//spi_display1("file.wav");
+	set_freq_a(261.626); // Middle 'C'
+	while(1) {
+		for(int out=0; out<4096; out++) {
+			interrupt();
+			//start_adc_channel(1);
+			//int sample = read_adc();
+			//float level = 2.95 * sample / 4095;
+			//display_float(level);
+		}
+	}
+	int iter = 0;
+	while(1) {
+
+		if (iter==1) {
+			write_dac(100);
+			iter = 0;
+		}
+		else {
+			iter++;
+			write_dac(0);
+		}
+		nano_wait(10000000);
+		//for(int out=0; out<4096; out++) { }
+	}*/
+
 }
