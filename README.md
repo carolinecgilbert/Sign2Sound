@@ -11,10 +11,10 @@ Sign2Sound is a semi-portable ASL translator for the 24 stationary letters of th
 ### Virtual Environment (Conda)
 Use a virtual environment to install the required dependencies for the computer vision algorithm.
 
-See [Virtual Environment Dependencies](pca-test/cv-env.yml)
+See [Virtual Environment Dependencies](src/cv-env.yml)
 
 Navigate to the pca-test folder and run the following commands to activate a virtual environment on Anaconda to install and run the notebook:
-- Create a new virtual environment `cv-env` from the [cv-env.yml](pca-test/cv-env.yml) dependencies:
+- Create a new virtual environment `cv-env` from the [cv-env.yml](src/cv-env.yml) dependencies:
 
     ```
     conda env create -f cv-env.yml
@@ -37,7 +37,7 @@ Navigate to the pca-test folder and run the following commands to activate a vir
 ### Image Preprocessing
 Principal component analysis (PCA) is a dimensionality reduction method utilized in image preprocessing to flatten image data. After capturing the user's ASL image on the Raspberry Pi camera, the Raspberry Pi performs PCA on the captured image to prepare the data for the KNN algorithm. To run the PCA script, execute the following command:
 
-Run the [pca.py](pca-test/pca.py) script to performa PCA on the [color-glove1.jpb](pca-test/color-glove1.jpg) image:
+Run the [pca.py](src/pca.py) script to performa PCA on the [color-glove1.jpb](src/color-glove1.jpg) image:
 
 ```
 python pca-test/pca.py

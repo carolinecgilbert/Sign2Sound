@@ -1,4 +1,4 @@
 .DS_Store
-pca-test/.ipynb_checkpoints/
-pca-test/__pycache__/
-pca-test/pca-tutorial.ipynb
+src/.ipynb_checkpoints/
+src/__pycache__/
+src/pca-tutorial.ipynb
