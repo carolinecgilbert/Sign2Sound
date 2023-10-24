@@ -1,17 +1,20 @@
 import cv2
 import numpy as np
-
+import matplotlib.pyplot as plt #delete later
+import matplotlib.image as mpimg
 
 def PCA(input_image, n_bands=3, debug_mode=True):
     # Read RGB image into an array with cv2 lib
     img = cv2.imread(input_image)
+    cv2.imshow("image",img) #delete later
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     img_shape = img.shape[:2]
 
     # stack images into an array
     stacked_imgs = np.zeros((img_shape[0],img_shape[1],n_bands))
     for i in range(n_bands):
-        stacked_imgs[:,:,i] = cv2.imread('color-glove'+str(i+1)+'.jpg', 
-                                   cv2.IMREAD_GRAYSCALE)  
+        stacked_imgs[:,:,i] = cv2.imread(input_image, cv2.IMREAD_GRAYSCALE)
 
     # Flatten stacked images into standardized 1D array
     img_matrix = np.zeros((stacked_imgs[:,:,0].size,n_bands))
@@ -37,8 +40,8 @@ def PCA(input_image, n_bands=3, debug_mode=True):
     return PC
 
 def main():
-    img = 'src/color-glove1.jpg'
-    n_bands = 1
+    img = 'test1.jpg'
+    n_bands = 3
     debug_mode = True
     PC = PCA(img, n_bands, debug_mode)
     

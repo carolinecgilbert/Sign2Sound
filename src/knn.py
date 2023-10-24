@@ -1,6 +1,13 @@
 import numpy as np
 from pca import *
 
+#use mnist dataset instead of reference dataset for now, delete later
+from keras.datasets import mnist
+
+#load mnist dataset
+(X_train, y_train), (X_test, y_test) = mnist.load_data() #60,000 training + 10,000 testing
+
+
 # Perform PCA on sample images
 glovePC = PCA('color-glove1.jpg', 1, False)
 dogPC = PCA('dog1.webp', 1, False)
