@@ -6,9 +6,9 @@ import matplotlib.image as mpimg
 def PCA(input_image, n_bands=3, debug_mode=True):
     # Read RGB image into an array with cv2 lib
     img = cv2.imread(input_image)
-    cv2.imshow("image",img) #delete later
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow("image",img) #delete later
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     img_shape = img.shape[:2]
     b,g,r=cv2.split(img)
     cv2.imwrite('blue_channel.jpg',b)
@@ -31,7 +31,7 @@ def PCA(input_image, n_bands=3, debug_mode=True):
         img_arr = stacked_imgs[:,:,i].flatten()
         img_arr_std = (img_arr - img_arr.mean())/img_arr.std()
         img_matrix[:,i] = img_arr_std
-
+        
     # Calculate covariance and eigen values/vectors
     np.set_printoptions(precision=3)
     cov = np.cov(img_matrix.transpose())
@@ -59,20 +59,19 @@ def PCA(input_image, n_bands=3, debug_mode=True):
         PC_2d_Norm[:,:,i] = cv2.normalize(PC_2d[:,:,i],
                         np.zeros(img_shape),0,255 ,cv2.NORM_MINMAX)
     # Comparsion of RGB and Image produced using first three bands
-    fig,axes = plt.subplots(1,2,figsize=(20,10),
-                            sharex='all', sharey='all')
-    fig.subplots_adjust(wspace=0.1, hspace=0.15)
-
-    img = cv2.imread(input_image)
-    axes[0].imshow(img)
-    axes[1].imshow(PC_2d_Norm[:,:,:3][:,:,[0,2,1]].astype(int))
-    plt.show()
+    # fig,axes = plt.subplots(1,2,figsize=(20,10),
+    #                         sharex='all', sharey='all')
+    # fig.subplots_adjust(wspace=0.1, hspace=0.15)
+    #
+    # img = cv2.imread(input_image)
+    # axes[0].imshow(img)
+    # axes[1].imshow(PC_2d_Norm[:,:,:3][:,:,[0,2,1]].astype(int))
+    #plt.show()
 
 
 
     if (debug_mode):
         print("PC.size = ", PC.size, "\n\nPrincipal Components:\n", PC,"\n")
-
     return PC
 
 
