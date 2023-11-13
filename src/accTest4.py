@@ -1,6 +1,7 @@
 from lda import *
 import os, glob, numpy, sklearn, cv2
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
 
 def retLabels(labelPath):
     labelList = []
@@ -14,16 +15,18 @@ def confusion(trueLabels, predLabels):
 
 def testLda(testImg):
     ldaMod = pickle.load(open("lda.pkl", 'rb'))
-    blankImg = cv2.imread('blank.jpg')
+    #blankImg = cv2.imread('blank.jpg')
     predLetters = []
     for image in os.listdir(testImg):
         X_train = []
         img = cv2.imread(testImg + '/' + image)
         #newImg1 = cv2.resize(img, (800,480))
-        newImg = cv2.subtract(img, blankImg)
+        #newImg = cv2.subtract(img, blankImg)
         #X_train.append(newImg.flatten())
         X_train.append(img.flatten())
         X_train = np.asarray(X_train)
+        # ss = StandardScaler()
+        # X_train = ss.fit_transform(X_train)
         X_train = (X_train - np.mean(X_train)) / np.std(X_train)
         predLetter = ldaMod.predict(X_train)
         print(predLetter[0])
@@ -38,8 +41,9 @@ def testAlg(testPath, trueLabels):
 
 if __name__ == "__main__":
     print('testing algorithm')
-    trueLabels = retLabels('data1/test')
-    acc, confMat, predLabels = testAlg('data1/test', trueLabels)
+    trueLabels = retLabels('test/')
+    print(trueLabels)
+    acc, confMat, predLabels = testAlg('test/', trueLabels)
     print(f'{confMat}')
     disp = sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix=confMat, display_labels=np.array(
         ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',

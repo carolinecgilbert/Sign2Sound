@@ -4,7 +4,7 @@ from PIL import Image
 import os
 import glob
 
-inputFolder = 'data1/train/'
+inputFolder = 'data2/train/'
 folderlen = len(inputFolder)
 
 i = 0
