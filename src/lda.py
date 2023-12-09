@@ -37,6 +37,6 @@ def lda(imgPath):
 
 if __name__ == "__main__":
     print("program running")
-    img = 'train/'
+    img = 'data2/train/'
     i = lda(img)
     print("done")

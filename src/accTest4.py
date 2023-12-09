@@ -1,7 +1,8 @@
 from lda import *
-import os, glob, numpy, sklearn, cv2
+import os, sklearn, cv2
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
+import numpy as np
 
 def retLabels(labelPath):
     labelList = []
@@ -41,9 +42,9 @@ def testAlg(testPath, trueLabels):
 
 if __name__ == "__main__":
     print('testing algorithm')
-    trueLabels = retLabels('test/')
+    trueLabels = retLabels('data2/test/')
     print(trueLabels)
-    acc, confMat, predLabels = testAlg('test/', trueLabels)
+    acc, confMat, predLabels = testAlg('data2/test/', trueLabels)
     print(f'{confMat}')
     disp = sklearn.metrics.ConfusionMatrixDisplay(confusion_matrix=confMat, display_labels=np.array(
         ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
