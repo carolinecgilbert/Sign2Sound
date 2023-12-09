@@ -1,2 +1,4 @@
 .DS_Store
 CV/__pycache__/
+*.pkl
+CV/*.pkl
