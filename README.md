@@ -12,7 +12,7 @@ Sign2Sound is a semi-portable ASL translator, which includes the device itself a
 - [Final_Sign2Sound](Final_Sign2Sound/) directory contains our project's STM32CubeIDE code that configures the STM32F091RCT6
   - [Final_Sign2Sound.zip](Final_Sign2Sound.zip) is a zip file containing all of the code in the directory
 - [RaspberryPi](RaspberryPi/) directory contains our project's Raspberry Pi 4B driver code that configures the Raspberry Pi to execute the program and interface with the STM32
-- [src](src/) directory contains code for our computer vision algorithm hosted on the Raspberry Pi
+- [CV](CV/) directory contains code for our computer vision algorithm hosted on the Raspberry Pi
 
 ## Install
 This project uses the following software and libraries:
